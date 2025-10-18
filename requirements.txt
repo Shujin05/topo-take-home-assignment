@@ -1,0 +1,4 @@
+axios
+recharts
+react-hook-form
+tailwindcss
