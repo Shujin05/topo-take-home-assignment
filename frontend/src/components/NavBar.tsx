@@ -23,11 +23,13 @@ const Navbar: React.FC = () => {
         onClick={(e) => {
           if (e.key === "rawData") navigate("/raw-data");
           else if (e.key === "buildChart") navigate("/build-chart");
+          else if (e.key === "myCharts") navigate("/my-charts");
         }}
         style={{ background: "#1bc47d", flex: 1 }}
       >
         <Menu.Item key="rawData">View Raw Data</Menu.Item>
         <Menu.Item key="buildChart">Build Your Chart</Menu.Item>
+        <Menu.Item key="myCharts">My Charts</Menu.Item>
       </Menu>
     </Header>
   );

@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import RawDataPage from "./pages/RawDataPage";
 import ChartPage from "./pages/ChartPage";
 import Navbar from "./components/NavBar";
+import MyCharts from "./pages/MyCharts";
 
 const AppRoutes: React.FC = () => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/raw-data" element={<RawDataPage />} />
         <Route path="/build-chart" element={<ChartPage />} />
+        <Route path="/my-charts" element={<MyCharts />} />
       </Routes>
     </>
   );

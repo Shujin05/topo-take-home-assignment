@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col } from "antd";
+import { Layout, Row, Col, Button, message, Modal, Input} from "antd";
 import ChartBuilder from "../components/ChartBuilder";
 import ChartPreview from "../components/ChartPreview";
 import { getRawData } from "../api/apiService";
@@ -13,6 +13,8 @@ const ChartPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [chartParams, setChartParams] = useState<Record<string, string>>({});
   const [chartError, setChartError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [presetName, setPresetName] = useState("");
 
   const dataColumns = Object.keys(rawData[0] || {});
 
@@ -31,6 +33,30 @@ const ChartPage: React.FC = () => {
       };
       fetchData();
     }, []);
+
+  const handleSavePreset = () => {
+    setShowModal(true);
+  };
+
+  const handleModalOk = () => {
+    if (!presetName) {
+      message.error("Please enter a name for the preset.");
+      return;
+    }
+    
+    // save to local storage
+    const savedPresets = JSON.parse(localStorage.getItem("chartPresets") || "[]");
+    savedPresets.push({ name: presetName, config: chartParams });
+    localStorage.setItem("chartPresets", JSON.stringify(savedPresets));
+
+    setPresetName("");
+    setShowModal(false);
+    message.success("Preset saved successfully.");
+  };
+
+  const handleModalCancel = () => {
+    setShowModal(false);
+  };
     
   return (
     <Layout style={{ minHeight: "100vh", background: "#f9fafb" }}>
@@ -51,6 +77,21 @@ const ChartPage: React.FC = () => {
             />
           </Col>
           <Col xs={24} md={14}>
+              <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset}>Save Preset</Button>
+              <Modal
+                title="Save Chart Preset"
+                visible={showModal}
+                onOk={handleModalOk}
+                onCancel={handleModalCancel}
+                okText="Save"
+                cancelText="Cancel"
+              >
+                <Input
+                  placeholder="Enter preset name"
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                />
+              </Modal>
             <ChartPreview
               chartType={chartParams.chartType}
               chartData={chartData}
