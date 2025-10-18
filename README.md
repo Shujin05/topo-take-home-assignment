@@ -43,13 +43,18 @@ npm run dev
 
 ## Testing Instructions
 
-
 ---
 ## Challenges
 - Pie and boxplot charts have limited dynamic rendering compared to bar/line charts due to Recharts API constraints.
 - Multiline chart grouping is only supported for a single Z-axis column.
 - Chart rendering heavily depends on correct data formatting from the API.
-- No persistent storage for user selections; state resets on refresh.
+- No persistent storage for user selections and graph presets on refresh.
+
+---
+## Design Choices
+- TypeScript is used alongside React to add static typing to the JavaScript code, ensuring that props, states, and other variables are used in a type-safe manner.
+- Ant Design: comprehensive UI library with pre-designed components to ensure a consistent UI interface.
+- Recharts: supports features like hover effects, tooltips, easy to integrate into a React-based website due to declarative syntax.
 
 
 
