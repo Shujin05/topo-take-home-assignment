@@ -26,8 +26,8 @@ This project is a **Chart Builder application** designed to dynamically visualiz
 1. **Clone the repository**  
 
 ```bash
-git clone <repository-url>
-cd <repository-folder>
+git clone https://github.com/Shujin05/topo-take-home-assignment.git
+cd topo-take-home-assignment
 ```
 
 2. **Install dependencies** 
