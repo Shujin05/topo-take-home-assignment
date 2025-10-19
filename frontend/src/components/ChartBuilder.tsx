@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Card, Form, Select, Button, Radio, Alert } from "antd";
 import { getChartData } from "../api/apiService";
+import { aggregateData, prepareBoxplotData, transformDataToMultiline } from "../utils/chartUtils";
+import { useQueryParamsState } from "../hooks/useQueryParamsState";
 
 const { Option } = Select;
 
@@ -13,6 +15,7 @@ type Props = {
 };
 
 const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
+  const [paramValue, setParamValue] = useQueryParamsState<string>("preset", '');
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,8 +27,7 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
   const y = Form.useWatch("y", form);
   const z = Form.useWatch("z", form);
 
-  const isPieChart = chartType === "pie";
-  const requiresY = (( aggregationType === "sum") || (aggregationType === "average"));
+  const requiresY = (( aggregationType === "sum") || (aggregationType === "average") || (chartType === "boxplot"));
   const usesZ = (chartType === "multiline");
 
   const optionsFor = (field: "x" | "y" | "z") =>
@@ -37,8 +39,7 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
     });
 
   const isValid = useMemo(() => {
-    if (!chartType) return false;
-    if (!aggregationType) return false;
+    if (!aggregationType && chartType !== "boxplot") return false;
     if (!x) return false;
     if (aggregationType === "sum" || aggregationType === "average") {
       if (!y) return false;
@@ -55,34 +56,25 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
     }
   }, [chartType, aggregationType, form]);
 
-  const aggregateData = (data: any[], groupByKey: string, aggregationType: AggType) => {
-    const aggregated: Record<string, { sum: number, count: number }> = {};
+  useEffect(() => {
+    if (paramValue) {
+      const params = JSON.parse(paramValue);
+      form.setFieldsValue(params);
+    }
+  }, [paramValue, form]);
 
-    data.forEach((item) => {
-      const key = item[groupByKey];
-      const amount = parseFloat(item.amount);
+  const updateQueryParams = () => {
+    const values = form.getFieldsValue(true);
+    const queryParams = {
+      chartType: values.chartType,
+      aggregationType: values.aggregationType,
+      x: values.x,
+      y: values.y,
+      z: values.z,
+    };
 
-      if (!isNaN(amount)) {
-        if (aggregated[key]) {
-          aggregated[key].sum += amount;
-          aggregated[key].count += 1;
-        } else {
-          aggregated[key] = { sum: amount, count: 1 };
-        }
-      } else {
-        aggregated[key] = { sum: NaN, count: 0 };
-      }
-    });
-
-    return Object.keys(aggregated).map((key) => {
-      const { sum, count } = aggregated[key];
-      const average = count > 0 ? sum / count : NaN;
-      return {
-        [groupByKey]: key,
-        sum: sum,
-        average: average,
-      };
-    });
+    const queryStr = new URLSearchParams(queryParams as any).toString();
+    history.push(`?${queryStr}`);
   };
 
   const handleUndo = () => {
@@ -94,29 +86,37 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
     }
   };
 
-
   const handleGenerate = async () => {
     setError(null);
     const values = form.getFieldsValue(true);
-
     const params: Record<string, string> = {
       chartType: values.chartType,
-      aggregationType: values.aggregationType,
       x: values.x,
     };
 
-    if (values.y) params.y = values.y;
-    if (values.z) params.z = values.z;
-
+    if (chartType === "boxplot") {
+      params.aggregationType = "sum";
+      params.y = values.y;
+    } else {
+      params.aggregationType = values.aggregationType;
+      if (values.y) params.y = values.y;
+      if (values.z) params.z = values.z;
+    }
     setLoading(true);
 
     try {
       const data = await getChartData(params);
       console.log("chart-data response:", data.data); // Debugging
 
-      if ((values.aggregationType === "sum" || values.aggregationType === "average") && values.x) {
-        const aggregatedData = aggregateData(data.data, values.x, values.aggregationType);
-        console.log("Aggregated Data:", aggregatedData); // Debugging
+      if (chartType === "boxplot" && values.x && values.y) {
+        const boxplotData = prepareBoxplotData(data.data, values.x, values.y)
+        console.log(boxplotData);
+        onResult(boxplotData, { params });
+      } else if (chartType === "multiline" && values.z) {
+          const multilineData = transformDataToMultiline(data.data, values.x, values.y, values.z);
+          onResult(multilineData, { params });
+      } else if ((values.aggregationType === "sum" || values.aggregationType === "average") && values.x) {
+        const aggregatedData = aggregateData(data.data, values.x);
 
         const isInvalidData = aggregatedData.some(item => isNaN(item.sum));
 
@@ -157,10 +157,11 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
             <Radio.Button value="bar">Bar</Radio.Button>
             <Radio.Button value="line">Line</Radio.Button>
             <Radio.Button value="pie">Pie</Radio.Button>
-            <Radio.Button value="multiline">Multiline</Radio.Button>
+            <Radio.Button value="multiline">Multi-line</Radio.Button>
             <Radio.Button value="boxplot">Boxplot</Radio.Button>
         </Radio.Group>
         </Form.Item>
+        {chartType !== "boxplot" &&
         <Form.Item name="aggregationType" label="Aggregation" rules={[{ required: true }]}>
           <Select>
             <Option value="count">count</Option>
@@ -168,10 +169,11 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
             <Option value="average">average</Option>
           </Select>
         </Form.Item>
-
+        }
+  
         <Form.Item
           name="x"
-          label={chartType === "pie" ? "Categorical column (for pie slices)" : "X axis (column)"}
+          label={chartType === "pie" || chartType === "boxplot" ? "Categorical value" : "X axis (column)"}
           rules={[{ required: true, message: "Please select X column" }]}
         >
           <Select placeholder="Select column for X">
@@ -185,7 +187,7 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
 
           <Form.Item
             name="y"
-            label="Y axis (column)"
+            label={chartType === "pie" || chartType === "boxplot" ? "Numerical value" : "Y axis (column)"}
             rules={
               aggregationType !== "count" && requiresY
                 ? [{ required: true, message: "Y is required for sum/average" }]
@@ -193,7 +195,7 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
             }
           >
             <Select
-              placeholder={aggregationType === "count" ? "Y column not required for aggregation type 'count'" : isPieChart? "Select optional numerical column" : requiresY ? "Select Y column (required)" : "Select Y column (optional)"}
+              placeholder={aggregationType === "count" ? "not required for aggregation type 'count'" : chartType === "pie" ? "Select optional numerical column" : requiresY ? "Select Y column (required)" : "Select Y column (optional)"}
               allowClear
               disabled={aggregationType === "count"}
             >

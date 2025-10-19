@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Button, message, Modal, Input} from "antd";
+import { Layout, Row, Col, Button, message, Modal, Input, Typography} from "antd";
 import ChartBuilder from "../components/ChartBuilder";
 import ChartPreview from "../components/ChartPreview";
 import { getRawData } from "../api/apiService";
 
 const { Content } = Layout;
+const { Text } = Typography;
 
 const ChartPage: React.FC = () => {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -14,7 +15,9 @@ const ChartPage: React.FC = () => {
   const [chartParams, setChartParams] = useState<Record<string, string>>({});
   const [chartError, setChartError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [presetName, setPresetName] = useState("");
+  const [presetExist, setPresetExist] = useState<boolean>(false);
 
   const dataColumns = Object.keys(rawData[0] || {});
 
@@ -39,25 +42,29 @@ const ChartPage: React.FC = () => {
   };
 
   const handleModalOk = () => {
-    if (!presetName) {
-      message.error("Please enter a name for the preset.");
+    const savedPresets = JSON.parse(localStorage.getItem("chartPresets") || "[]");
+    const existingPreset = savedPresets.find((preset: { name: string }) => preset.name === presetName);
+    
+    if (existingPreset) {
+      setPresetExist(true);
       return;
     }
-    
-    // save to local storage
-    const savedPresets = JSON.parse(localStorage.getItem("chartPresets") || "[]");
+
     savedPresets.push({ name: presetName, config: chartParams });
     localStorage.setItem("chartPresets", JSON.stringify(savedPresets));
 
     setPresetName("");
     setShowModal(false);
-    message.success("Preset saved successfully.");
+    setPresetExist(false);
+    setShowSuccess(true);
   };
 
   const handleModalCancel = () => {
+    setPresetExist(false);
+    setPresetName("");
     setShowModal(false);
   };
-    
+
   return (
     <Layout style={{ minHeight: "100vh", background: "#f9fafb" }}>
       <Content style={{ padding: "2rem" }}>
@@ -77,21 +84,40 @@ const ChartPage: React.FC = () => {
             />
           </Col>
           <Col xs={24} md={14}>
-              <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset}>Save Preset</Button>
+              <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset} disabled={Object.keys(chartParams).length === 0}>Save Preset</Button>
               <Modal
                 title="Save Chart Preset"
-                visible={showModal}
+                open={showModal}
                 onOk={handleModalOk}
                 onCancel={handleModalCancel}
                 okText="Save"
                 cancelText="Cancel"
+                okButtonProps={{
+                  disabled: !presetName,
+                }}
               >
                 <Input
                   placeholder="Enter preset name"
                   value={presetName}
                   onChange={(e) => setPresetName(e.target.value)}
                 />
+                {presetExist && (
+                  <Text type="danger" style={{ marginTop: "8px" }}>
+                    A preset with this name already exists.
+                  </Text>
+                )}
               </Modal>
+              <Modal
+                title="Preset saved successfully"
+                open={showSuccess}
+              ></Modal>
+
+              <Modal
+                title={<span style={{ color: "#1bc47d" }}>Preset saved successfully</span>}
+                open={showSuccess}
+                onCancel={() => setShowSuccess(false)}
+                onOk = {() => setShowSuccess}
+              ></Modal>
             <ChartPreview
               chartType={chartParams.chartType}
               chartData={chartData}

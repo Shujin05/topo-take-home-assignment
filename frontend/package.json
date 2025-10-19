@@ -13,6 +13,8 @@
     "@ant-design/icons": "^6.1.0",
     "antd": "^5.27.5",
     "axios": "^1.12.2",
+    "less": "^4.4.2",
+    "less-loader": "^12.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",

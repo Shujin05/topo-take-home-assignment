@@ -13,6 +13,7 @@ const MyCharts: React.FC = () => {
 
   const handleLoadPreset = (preset: any) => {
     navigate("/build-chart", { state: { preset } });
+
   };
 
   const handleDeletePreset = (presetName: string) => {

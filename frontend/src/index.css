@@ -3,3 +3,8 @@
   border-color: #1bc47d !important;
   color: white !important;
 }
+.ant-btn:hover:not(:disabled), .ant-btn:focus {
+  background-color: white !important;
+  border-color: #1a9d62 !important;
+  color: #1a9d62 !important;
+}

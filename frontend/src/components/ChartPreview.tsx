@@ -16,6 +16,9 @@ import {
   Cell,
 } from "recharts";
 
+import BoxPlot from "./BoxPLot";
+
+
 type Props = {
   chartType?: string | null;
   chartData: any[];
@@ -70,9 +73,9 @@ const renderBarChart = (chartData: any[], params: Record<string, string> | undef
   );
 };
 
-const renderLineChart = (chartData: any[]) => {
-  const xKey = Object.keys(chartData[0])[0];
-  const yKey = Object.keys(chartData[0])[1] ?? "value";
+const renderLineChart = (chartData: any[], params: Record<string, string> | undefined) => {
+  const xKey = params?.x;
+  const aggregationType = params?.aggregationType;
 
   return (
     <Card title="Line Chart Preview">
@@ -83,14 +86,14 @@ const renderLineChart = (chartData: any[]) => {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Line type="monotone" dataKey={yKey} stroke={COLORS[0]} />
+          <Line type="monotone" dataKey={aggregationType} stroke={COLORS[0]} />
         </LineChart>
       </ResponsiveContainer>
     </Card>
   );
 };
 
-const renderMultilineChart = (chartData: any[]) => {
+const renderMultilineChart = (chartData: any[], params: Record<string, string> | undefined) => {
   const keys = Object.keys(chartData[0]);
   const xKey = keys[0];
   const valueKeys = keys.slice(1);
@@ -107,17 +110,11 @@ const renderMultilineChart = (chartData: any[]) => {
           {valueKeys.map((k, i) => (
             <Line key={k} type="monotone" dataKey={k} stroke={COLORS[i % COLORS.length]} />
           ))}
-        </LineChart>
+        </LineChart> 
       </ResponsiveContainer>
     </Card>
   );
 };
-
-const renderBoxPlot = (chartData: any[]) => (
-  <Card title="Boxplot Summary (fallback)">
-    <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(chartData, null, 2)}</pre>
-  </Card>
-);
 
 const ChartPreview: React.FC<Props> = ({ chartType, chartData, params, error }) => {
   if (error) return <Alert type="error" message={error} />;
@@ -129,11 +126,15 @@ const ChartPreview: React.FC<Props> = ({ chartType, chartData, params, error }) 
     case "bar":
       return renderBarChart(chartData, params);
     case "line":
-      return renderLineChart(chartData);
+      return renderLineChart(chartData, params);
     case "multiline":
-      return renderMultilineChart(chartData);
+      return renderMultilineChart(chartData, params);
     case "boxplot":
-      return renderBoxPlot(chartData);
+      return (
+      <Card title="Boxplot Preview"> 
+        <BoxPlot boxplot={chartData} />
+      </Card>
+      );
     default:
       return <div>Unsupported chart type</div>;
   }
