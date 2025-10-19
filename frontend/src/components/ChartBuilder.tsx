@@ -3,6 +3,7 @@ import { Card, Form, Select, Button, Radio, Alert } from "antd";
 import { getChartData } from "../api/apiService";
 import { aggregateData, prepareBoxplotData, transformDataToMultiline } from "../utils/chartUtils";
 import { useQueryParamsState } from "../hooks/useQueryParamsState";
+import { useSearchParams } from "react-router-dom";
 
 const { Option } = Select;
 
@@ -14,12 +15,18 @@ type Props = {
   onResult: (chartData: any[], meta: { params: Record<string, string> }) => void;
 };
 
-const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
-  const [paramValue, setParamValue] = useQueryParamsState<string>("preset", '');
+const ChartBuilder: React.FC<Props> = ({ columns, onResult}) => {
+  const [searchParams] = useSearchParams();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    for (const [key, value] of searchParams) {
+      form.setFieldValue(key, value)
+    }
+  }, [searchParams])
 
   const chartType: ChartType | undefined = Form.useWatch("chartType", form);
   const aggregationType: AggType | undefined = Form.useWatch("aggregationType", form);
@@ -56,27 +63,6 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
     }
   }, [chartType, aggregationType, form]);
 
-  useEffect(() => {
-    if (paramValue) {
-      const params = JSON.parse(paramValue);
-      form.setFieldsValue(params);
-    }
-  }, [paramValue, form]);
-
-  const updateQueryParams = () => {
-    const values = form.getFieldsValue(true);
-    const queryParams = {
-      chartType: values.chartType,
-      aggregationType: values.aggregationType,
-      x: values.x,
-      y: values.y,
-      z: values.z,
-    };
-
-    const queryStr = new URLSearchParams(queryParams as any).toString();
-    history.push(`?${queryStr}`);
-  };
-
   const handleUndo = () => {
     if (history.length > 1) {
       const previousConfig = history[history.length - 2];
@@ -106,11 +92,8 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult }) => {
 
     try {
       const data = await getChartData(params);
-      console.log("chart-data response:", data.data); // Debugging
-
       if (chartType === "boxplot" && values.x && values.y) {
         const boxplotData = prepareBoxplotData(data.data, values.x, values.y)
-        console.log(boxplotData);
         onResult(boxplotData, { params });
       } else if (chartType === "multiline" && values.z) {
           const multilineData = transformDataToMultiline(data.data, values.x, values.y, values.z);

@@ -1,29 +1,29 @@
 import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
 import { useLocation } from "react-router-dom";
 
-type UseQueryParamsStateReturnType<T> = [T, Dispatch<SetStateAction<T>>];
+type UseQueryParamsStateReturnType = [string, Dispatch<SetStateAction<string>>];
 
-export const useQueryParamsState = <T>(
+export const useQueryParamsState = (
   param: string,
-  initialState: T
-): UseQueryParamsStateReturnType<T> => {
+  initialState: string
+): UseQueryParamsStateReturnType => {
   const location = useLocation();
 
-  const [value, setValue] = useState<T>(() => {
+  const [value, setValue] = useState<string>(() => {
     if (typeof window === "undefined") return initialState;
 
     const { search } = window.location;
     const searchParams = new URLSearchParams(search);
     const paramValue = searchParams.get(param);
 
-    return paramValue !== null ? JSON.parse(paramValue) as T : initialState;
+    return paramValue !== null ? paramValue : initialState;
   });
 
   useEffect(() => {
     const currentSearchParams = new URLSearchParams(window.location.search);
 
     if (value !== null && value !== "") {
-      currentSearchParams.set(param, JSON.stringify(value));
+      currentSearchParams.set(param, value);
     } else {
       currentSearchParams.delete(param);
     }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Button, message, Modal, Input, Typography} from "antd";
+import { Layout, Row, Col, Button, Modal, Input, Typography } from "antd";
 import ChartBuilder from "../components/ChartBuilder";
 import ChartPreview from "../components/ChartPreview";
 import { getRawData } from "../api/apiService";
@@ -22,20 +22,20 @@ const ChartPage: React.FC = () => {
   const dataColumns = Object.keys(rawData[0] || {});
 
   useEffect(() => {
-      const fetchData = async () => {
-        try {
-          setLoading(true);
-          const data = await getRawData();
-          setRawData(data);
-        } catch (err) {
-          console.error(err);
-          setError("Failed to load data.");
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchData();
-    }, []);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getRawData();
+        setRawData(data);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleSavePreset = () => {
     setShowModal(true);
@@ -44,7 +44,7 @@ const ChartPage: React.FC = () => {
   const handleModalOk = () => {
     const savedPresets = JSON.parse(localStorage.getItem("chartPresets") || "[]");
     const existingPreset = savedPresets.find((preset: { name: string }) => preset.name === presetName);
-    
+
     if (existingPreset) {
       setPresetExist(true);
       return;
@@ -84,40 +84,40 @@ const ChartPage: React.FC = () => {
             />
           </Col>
           <Col xs={24} md={14}>
-              <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset} disabled={Object.keys(chartParams).length === 0}>Save Preset</Button>
-              <Modal
-                title="Save Chart Preset"
-                open={showModal}
-                onOk={handleModalOk}
-                onCancel={handleModalCancel}
-                okText="Save"
-                cancelText="Cancel"
-                okButtonProps={{
-                  disabled: !presetName,
-                }}
-              >
-                <Input
-                  placeholder="Enter preset name"
-                  value={presetName}
-                  onChange={(e) => setPresetName(e.target.value)}
-                />
-                {presetExist && (
-                  <Text type="danger" style={{ marginTop: "8px" }}>
-                    A preset with this name already exists.
-                  </Text>
-                )}
-              </Modal>
-              <Modal
-                title="Preset saved successfully"
-                open={showSuccess}
-              ></Modal>
+            <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset} disabled={Object.keys(chartParams).length === 0}>Save Preset</Button>
+            <Modal
+              title="Save Chart Preset"
+              open={showModal}
+              onOk={handleModalOk}
+              onCancel={handleModalCancel}
+              okText="Save"
+              cancelText="Cancel"
+              okButtonProps={{
+                disabled: !presetName,
+              }}
+            >
+              <Input
+                placeholder="Enter preset name"
+                value={presetName}
+                onChange={(e) => setPresetName(e.target.value)}
+              />
+              {presetExist && (
+                <Text type="danger" style={{ marginTop: "8px" }}>
+                  A preset with this name already exists.
+                </Text>
+              )}
+            </Modal>
+            <Modal
+              title="Preset saved successfully"
+              open={showSuccess}
+            ></Modal>
 
-              <Modal
-                title={<span style={{ color: "#1bc47d" }}>Preset saved successfully</span>}
-                open={showSuccess}
-                onCancel={() => setShowSuccess(false)}
-                onOk = {() => setShowSuccess}
-              ></Modal>
+            <Modal
+              title={<span style={{ color: "#1bc47d" }}>Preset saved successfully</span>}
+              open={showSuccess}
+              onCancel={() => setShowSuccess(false)}
+              onOk={() => setShowSuccess(false)}
+            ></Modal>
             <ChartPreview
               chartType={chartParams.chartType}
               chartData={chartData}

@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 const MyCharts: React.FC = () => {
   const [presets, setPresets] = useState<any[]>([]);
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [selectedPresetName, setSelectedPresetName] = useState<string>("");
 
   useEffect(() => {
     const savedPresets = JSON.parse(localStorage.getItem("chartPresets") || "[]");
@@ -12,24 +14,36 @@ const MyCharts: React.FC = () => {
   }, []);
 
   const handleLoadPreset = (preset: any) => {
-    navigate("/build-chart", { state: { preset } });
-
-  };
+    const toSet = new URLSearchParams()
+    for (const [key, value] of Object.entries(preset.config)) {
+      toSet.set(key, value)
+    }
+    navigate(`/build-chart?${toSet}`, { state: { preset } });
+};
 
   const handleDeletePreset = (presetName: string) => {
-    Modal.confirm({
-      title: "Are you sure you want to delete this preset?",
-      onOk: () => {
-        const updatedPresets = presets.filter((preset) => preset.name !== presetName);
-        setPresets(updatedPresets);
-        localStorage.setItem("chartPresets", JSON.stringify(updatedPresets));
-        message.success("Preset deleted successfully");
-      },
-    });
-  };
+    const updatedPresets = presets.filter((preset) => preset.name !== presetName);
+    setPresets(updatedPresets);
+    localStorage.setItem("chartPresets", JSON.stringify(updatedPresets));
+    setShowModal(false);
+    message.success("preset deleted successfully!");
+    }
 
   return (
     <Card title="My Charts" style={{ marginBottom: 16 }}>
+      <Modal
+        title="Confirm Delete?"
+        open={showModal}
+        onOk={() => {
+          handleDeletePreset(selectedPresetName);
+        }}
+        onCancel={() => setShowModal(false)}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{
+          danger: true
+        }}
+      ></Modal>
       <List
         bordered
         dataSource={presets}
@@ -37,7 +51,10 @@ const MyCharts: React.FC = () => {
           <List.Item
             actions={[
               <Button onClick={() => handleLoadPreset(preset)}>Load</Button>,
-              <Button danger onClick={() => handleDeletePreset(preset.name)}>Delete</Button>,
+              <Button danger onClick={() => {
+                setShowModal(true);
+                setSelectedPresetName(preset.name);
+              }}>Delete</Button>,
             ]}
           >
             {preset.name}
