@@ -47,7 +47,7 @@ npm run dev
 
 ---
 ## Challenges
-- Since Recharts doesn't have a built-in boxplot component, I had to create a custom boxplot using stacked bars and custom SVG elements such as HorizonBar and DotBar.
+- I faced difficulties plotting the boxplot. Since Recharts doesn't have a built-in boxplot component, I tried to create a custom boxplot using stacked bars and custom SVG elements such as HorizonBar and DotBar. However, I ran into sizing issues, and the whole plot couldn't fit into the designated space. Thus, I decided to use ApexChart's boxplot instead.
 - The data fetched from the backend was often not in a usable format to create the plots, especially when the aggregation type was sum or average, or when the plot was a boxplot. To resolve this, I had to preprocess the data.
 - I encountered difficulties loading the chart presets, as it required transferring chart data from one page to another. To overcome this, I used react's URLSearchParams to pass the chart params and generate the same chart.
 
