@@ -16,7 +16,7 @@ import {
   Cell,
 } from "recharts";
 
-import BoxPlot from "./BoxPLot";
+import BoxPlot from "./BoxPlot";
 
 type Props = {
   chartType?: string | null;

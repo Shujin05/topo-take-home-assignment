@@ -41,6 +41,17 @@ export const prepareBoxplotData = (data: any[], xKey: string, yKey: string) => {
   });
 
   const boxplotData = Array.from(groupedByX.entries()).map(([key, values]) => {
+    if (values.length === 0) {
+      return {
+        category: key,
+        min: NaN,
+        q1: NaN,
+        median: NaN,
+        q3: NaN,
+        max: NaN,
+      };
+    }
+
     values.sort((a, b) => a - b);
     const q1 = quantile(values, 0.25);
     const median = quantile(values, 0.5);
@@ -57,6 +68,7 @@ export const prepareBoxplotData = (data: any[], xKey: string, yKey: string) => {
       max,
     };
   });
+
   return boxplotData;
 };
 
