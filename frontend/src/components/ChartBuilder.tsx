@@ -114,7 +114,7 @@ const ChartBuilder: React.FC<Props> = ({ onResult}) => {
       if (chartType === "boxplot" && values.x && values.y) {
         const boxplotData = prepareBoxplotData(data.data, values.x, values.y)
         onResult(boxplotData, { params });
-      } else if (chartType === "multiline" && values.z) {
+      } else if (chartType === "multiline" && values.y && values.z) {
           const multilineData = transformDataToMultiline(data.data, values.x, values.y, values.z);
           onResult(multilineData, { params });
       } else if ((values.aggregationType === "sum" || values.aggregationType === "average") && values.x) {
