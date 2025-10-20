@@ -93,7 +93,7 @@ const renderLineChart = (chartData: any[], params: Record<string, string> | unde
   );
 };
 
-const renderMultilineChart = (chartData: any[], params: Record<string, string> | undefined) => {
+const renderMultilineChart = (chartData: any[]) => {
   const keys = Object.keys(chartData[0]);
   const xKey = keys[0];
   const valueKeys = keys.slice(1);
@@ -128,11 +128,11 @@ const ChartPreview: React.FC<Props> = ({ chartType, chartData, params, error }) 
     case "line":
       return renderLineChart(chartData, params);
     case "multiline":
-      return renderMultilineChart(chartData, params);
+      return renderMultilineChart(chartData);
     case "boxplot":
       return (
-      <Card title="Boxplot Preview"> 
-        <BoxPlot boxplot={chartData} />
+      <Card title="Boxplot Preview" style={{ height: "400px" }}> 
+          <BoxPlot boxplot={chartData} />
       </Card>
       );
     default:

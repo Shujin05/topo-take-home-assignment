@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Button, Modal, Input, Typography } from "antd";
+import { Layout, Row, Col, Button, Modal, Input, Typography, Table } from "antd";
 import ChartBuilder from "../components/ChartBuilder";
 import ChartPreview from "../components/ChartPreview";
 import { getRawData } from "../api/apiService";
@@ -18,6 +18,7 @@ const ChartPage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [presetName, setPresetName] = useState("");
   const [presetExist, setPresetExist] = useState<boolean>(false);
+  const [showTable, setShowTable] = useState(false);
 
   const dataColumns = Object.keys(rawData[0] || {});
 
@@ -65,12 +66,35 @@ const ChartPage: React.FC = () => {
     setShowModal(false);
   };
 
+  const handleToggleTable = () => {
+    setShowTable(!showTable);
+  };
+
+  const getTableCols = (chartData: any[]) => {
+    const tableColumns = Object.keys(chartData[0] || {}).map((key) => ({
+      title: key.charAt(0).toUpperCase() + key.slice(1),
+      dataIndex: key,
+      key,
+    }));
+    return tableColumns;
+  }
+
   return (
     <Layout style={{ minHeight: "100vh", background: "#f9fafb" }}>
       <Content style={{ padding: "2rem" }}>
         <Row gutter={16}>
           <Col xs={24} md={10}>
-            <ChartBuilder
+            {showTable && (
+              <Table
+                dataSource={chartData}
+                columns={getTableCols(chartData)}
+                rowKey={(index) => index.toString()}
+                style={{ marginTop: "1rem" }}
+                pagination={{ pageSize: 10 }}
+                scroll={{ x: true }}
+              />
+            )}
+            {!showTable && <ChartBuilder
               columns={dataColumns}
               onResult={(data, meta) => {
                 setChartData(data);
@@ -81,10 +105,13 @@ const ChartPage: React.FC = () => {
                     : null
                 );
               }}
-            />
+            /> }
           </Col>
           <Col xs={24} md={14}>
-            <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset} disabled={Object.keys(chartParams).length === 0}>Save Preset</Button>
+            <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset} disabled={Object.keys(chartParams).length === 0}>Save Chart</Button>
+            <Button style={{ marginBottom: "1rem", marginLeft: "10px" }} onClick={handleToggleTable} disabled={Object.keys(chartData).length === 0}>
+              {showTable ? "Hide Table" : "Show Table"}
+            </Button>
             <Modal
               title="Save Chart Preset"
               open={showModal}

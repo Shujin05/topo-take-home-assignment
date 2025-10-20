@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Card, Form, Select, Button, Radio, Alert } from "antd";
 import { getChartData } from "../api/apiService";
 import { aggregateData, prepareBoxplotData, transformDataToMultiline } from "../utils/chartUtils";
-import { useQueryParamsState } from "../hooks/useQueryParamsState";
 import { useSearchParams } from "react-router-dom";
 
 const { Option } = Select;
@@ -25,6 +24,7 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult}) => {
   useEffect(() => {
     for (const [key, value] of searchParams) {
       form.setFieldValue(key, value)
+      handleGenerate()
     }
   }, [searchParams])
 
@@ -191,7 +191,7 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult}) => {
           </Form.Item>
 
         {usesZ && (
-          <Form.Item name="z" label="Z axis (group by - optional)">
+          <Form.Item name="z" label="Z axis">
             <Select placeholder="Optional Z column for grouping" allowClear>
               {optionsFor("z").map((col) => (
                 <Option key={col} value={col}>

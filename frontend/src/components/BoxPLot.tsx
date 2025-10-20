@@ -21,6 +21,7 @@ type BoxPlot = {
 
 type BoxPlotData = {
   min: number;
+  max:number;
   bottomWhisker: number;
   bottomBox: number;
   topBox: number;
@@ -64,6 +65,7 @@ const useBoxPlot = (boxPlots: BoxPlot[]): BoxPlotData[] => {
         return {
           min: v.min,
           bottomWhisker: v.lowerQuartile - v.min,
+          max: v.max,
           bottomBox: v.median - v.lowerQuartile,
           topBox: v.upperQuartile - v.median,
           topWhisker: v.max - v.upperQuartile,
@@ -79,10 +81,11 @@ const useBoxPlot = (boxPlots: BoxPlot[]): BoxPlotData[] => {
 
 export default function BoxPlotChart({ boxplot }: { boxplot: BoxPlot[] }) {
   const data = useBoxPlot(boxplot);
-
+  const xMin = Math.min(...data.map(d => d.min));
+  const xMax = Math.max(...data.map(d => d.max));  
   return (
     <ResponsiveContainer height={300} width="100%">
-      <ComposedChart data={data}>
+      <ComposedChart data={data} margin={{ top: 10, right: 20, bottom: 30, left: 20 }}>
         <CartesianGrid strokeDasharray="5 5" />
         <Bar stackId={"a"} dataKey={"min"} fill={"none"} />
         <Bar stackId={"a"} dataKey={"bar"} shape={<HorizonBar />} />
@@ -94,8 +97,8 @@ export default function BoxPlotChart({ boxplot }: { boxplot: BoxPlot[] }) {
         <Bar stackId={"a"} dataKey={"bar"} shape={<HorizonBar />} />
         <ZAxis type="number" dataKey="size" range={[0, 250]} />
         <Scatter dataKey="average" fill={"red"} stroke={"#FFF"} />
-        <XAxis />
-        <YAxis />
+        <XAxis domain={[xMin, xMax + 10]} />
+        <YAxis domain={['auto', 'auto']} />
       </ComposedChart>
     </ResponsiveContainer>
   );
