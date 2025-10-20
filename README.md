@@ -46,7 +46,7 @@ npm run dev
 ---
 
 ## Testing Instructions
-1. **Run testsr** 
+1. **Run tests** 
 ```bash
 npm run test
 ```
