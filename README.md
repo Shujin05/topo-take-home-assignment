@@ -46,7 +46,10 @@ npm run dev
 ---
 
 ## Testing Instructions
-
+1. **Run testsr** 
+```bash
+npm run test
+```
 ---
 ## Challenges
 - I faced difficulties plotting the boxplot. Since Recharts doesn't have a built-in boxplot component, I tried to create a custom boxplot using stacked bars and custom SVG elements such as HorizonBar and DotBar. However, I ran into sizing issues, and the whole plot couldn't fit into the designated space. Thus, I decided to use ApexChart's boxplot instead.
