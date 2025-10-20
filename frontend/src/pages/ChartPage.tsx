@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Button, Modal, Input, Typography, Table, message } from "antd";
+import React, { useState } from "react";
+import { Layout, Row, Col, Button, Modal, Input, Typography, Table } from "antd";
 import ChartBuilder from "../components/ChartBuilder";
 import ChartPreview from "../components/ChartPreview";
 
