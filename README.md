@@ -10,6 +10,8 @@ This project is a **Chart Builder application** designed to dynamically visualiz
 - Preview charts.
 - Save their favourite chart presets.
 
+<img width="1797" height="954" alt="image" src="https://github.com/user-attachments/assets/524d11ff-163e-43e7-890a-0f5c378808a1" />
+
 **Architecture:**
 - **React + TypeScript:** front-end. 
 - **Ant Design (AntD):** UI components for forms, buttons, cards, alerts, and layout.  
