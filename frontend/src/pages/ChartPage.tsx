@@ -1,42 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Button, Modal, Input, Typography, Table } from "antd";
+import { Layout, Row, Col, Button, Modal, Input, Typography, Table, message } from "antd";
 import ChartBuilder from "../components/ChartBuilder";
 import ChartPreview from "../components/ChartPreview";
-import { getRawData } from "../api/apiService";
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 const ChartPage: React.FC = () => {
   const [chartData, setChartData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [rawData, setRawData] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [chartParams, setChartParams] = useState<Record<string, string>>({});
   const [chartError, setChartError] = useState<string | null>(null);
+  
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [presetName, setPresetName] = useState("");
   const [presetExist, setPresetExist] = useState<boolean>(false);
+  
   const [showTable, setShowTable] = useState(false);
-
-  const dataColumns = Object.keys(rawData[0] || {});
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const data = await getRawData();
-        setRawData(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const handleSavePreset = () => {
     setShowModal(true);
@@ -84,18 +64,7 @@ const ChartPage: React.FC = () => {
       <Content style={{ padding: "2rem" }}>
         <Row gutter={16}>
           <Col xs={24} md={10}>
-            {showTable && (
-              <Table
-                dataSource={chartData}
-                columns={getTableCols(chartData)}
-                rowKey={(index) => index.toString()}
-                style={{ marginTop: "1rem" }}
-                pagination={{ pageSize: 10 }}
-                scroll={{ x: true }}
-              />
-            )}
-            {!showTable && <ChartBuilder
-              columns={dataColumns}
+            <ChartBuilder
               onResult={(data, meta) => {
                 setChartData(data);
                 setChartParams(meta.params);
@@ -105,11 +74,15 @@ const ChartPage: React.FC = () => {
                     : null
                 );
               }}
-            /> }
+            />
           </Col>
           <Col xs={24} md={14}>
             <Button style={{ marginBottom: "1rem" }} onClick={handleSavePreset} disabled={Object.keys(chartParams).length === 0}>Save Chart</Button>
-            <Button style={{ marginBottom: "1rem", marginLeft: "10px" }} onClick={handleToggleTable} disabled={Object.keys(chartData).length === 0}>
+            <Button style={{
+              marginLeft: "1rem",
+              backgroundColor: showTable ? "#1bc47d" : "white",
+              color: showTable ? "white" : "black",
+            }} onClick={handleToggleTable} disabled={Object.keys(chartData).length === 0}>
               {showTable ? "Hide Table" : "Show Table"}
             </Button>
             <Modal
@@ -151,6 +124,16 @@ const ChartPage: React.FC = () => {
               params={chartParams}
               error={chartError}
             />
+            {showTable && (
+              <Table
+                dataSource={chartData}
+                columns={getTableCols(chartData)}
+                rowKey={(index) => index.toString()}
+                style={{ marginTop: "1rem" }}
+                pagination={{ pageSize: 10 }}
+                scroll={{ x: true }}
+              />
+            )}
           </Col>
         </Row>
       </Content>

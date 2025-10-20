@@ -1,52 +1,47 @@
 export const aggregateData = (data: any[], groupByKey: string) => {
-  const aggregated: Record<string, { sum: number, count: number }> = {};
+  const aggregated = new Map<string, { sum: number, count: number }>();
 
   data.forEach((item) => {
     const key = item[groupByKey];
     const amount = parseFloat(item.amount);
 
     if (!isNaN(amount)) {
-      if (aggregated[key]) {
-        aggregated[key].sum += amount;
-        aggregated[key].count += 1;
+      if (aggregated.has(key)) {
+        const current = aggregated.get(key)!;
+        current.sum += amount;
+        current.count += 1;
       } else {
-        aggregated[key] = { sum: amount, count: 1 };
+        aggregated.set(key, { sum: amount, count: 1 });
       }
     } else {
-      aggregated[key] = { sum: NaN, count: 0 };
+      aggregated.set(key, { sum: NaN, count: 0 });
     }
   });
 
-  return Object.keys(aggregated).map((key) => {
-    const { sum, count } = aggregated[key];
-    const average = count > 0 ? sum / count : NaN;
-    return {
-      [groupByKey]: key,
-      sum: sum,
-      average: average,
-    };
-  });
+  return Array.from(aggregated.entries()).map(([key, { sum, count }]) => ({
+    [groupByKey]: key,
+    sum,
+    average: count > 0 ? sum / count : NaN,
+  }));
 };
 
 export const prepareBoxplotData = (data: any[], xKey: string, yKey: string) => {
-  const groupedByX: Record<string, number[]> = {};
+  const groupedByX = new Map<string, number[]>();
 
   data.forEach(item => {
     const xValue = item[xKey];
     const yValue = parseFloat(item[yKey]);
 
     if (!isNaN(yValue)) {
-      if (!groupedByX[xValue]) {
-        groupedByX[xValue] = [];
+      if (!groupedByX.has(xValue)) {
+        groupedByX.set(xValue, []);
       }
-      groupedByX[xValue].push(yValue);
+      groupedByX.get(xValue)!.push(yValue);
     }
   });
 
-  const boxplotData = Object.keys(groupedByX).map((key) => {
-    const values = groupedByX[key];
+  const boxplotData = Array.from(groupedByX.entries()).map(([key, values]) => {
     values.sort((a, b) => a - b);
-
     const q1 = quantile(values, 0.25);
     const median = quantile(values, 0.5);
     const q3 = quantile(values, 0.75);
@@ -62,7 +57,6 @@ export const prepareBoxplotData = (data: any[], xKey: string, yKey: string) => {
       max,
     };
   });
-
   return boxplotData;
 };
 
@@ -79,7 +73,7 @@ const quantile = (values: number[], q: number) => {
 };
 
 export const transformDataToMultiline = (data: any[], xKey: string, yKey: string, zKey: string) => {
-  const groupedByZ: Record<string, any[]> = {};
+  const groupedByZ = new Map<string, Map<any, number>>();
 
   data.forEach(item => {
     const xValue = item[xKey];
@@ -87,35 +81,24 @@ export const transformDataToMultiline = (data: any[], xKey: string, yKey: string
     const yValue = parseFloat(item[yKey]);
 
     if (!isNaN(yValue)) {
-      if (!groupedByZ[zValue]) {
-        groupedByZ[zValue] = [];
+      if (!groupedByZ.has(zValue)) {
+        groupedByZ.set(zValue, new Map());
       }
-      groupedByZ[zValue].push({ x: xValue, y: yValue });
+      groupedByZ.get(zValue)!.set(xValue, yValue);
     }
   });
 
-  const result = Object.keys(groupedByZ).map(zValue => {
-    const seriesData = groupedByZ[zValue].map(({ x, y }) => ({ x, y }));
-
-    return {
-      label: zValue,
-      data: seriesData,
-      fill: false,
-    };
-  });
-
-  const multilineData: any[] = [];
   const xValues = [...new Set(data.map(item => item[xKey]))];
 
-  xValues.forEach(xValue => {
-    const chartItem = { [xKey]: xValue };
+  const multilineData = xValues.map(xValue => {
+    const chartItem: Record<string, any> = { [xKey]: xValue };
 
-    result.forEach(series => {
-      const dataPoint = series.data.find(item => item.x === xValue);
-      chartItem[series.label] = dataPoint ? dataPoint.y : null;
+    groupedByZ.forEach((zMap, zValue) => {
+      const yValue = zMap.get(xValue) ?? null;
+      chartItem[zValue] = yValue;
     });
 
-    multilineData.push(chartItem);
+    return chartItem;
   });
 
   return multilineData;

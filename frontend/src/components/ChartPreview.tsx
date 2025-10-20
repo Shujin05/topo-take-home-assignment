@@ -18,7 +18,6 @@ import {
 
 import BoxPlot from "./BoxPLot";
 
-
 type Props = {
   chartType?: string | null;
   chartData: any[];

@@ -13,7 +13,7 @@ const MyCharts: React.FC = () => {
     setPresets(savedPresets);
   }, []);
 
-  const handleLoadPreset = (preset: any) => {
+  const handleLoadPreset = (preset: Record<string, string>) => {
     const toSet = new URLSearchParams()
     for (const [key, value] of Object.entries(preset.config)) {
       toSet.set(key, value)

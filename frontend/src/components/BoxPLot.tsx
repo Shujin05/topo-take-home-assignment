@@ -1,105 +1,62 @@
-import React, { useMemo } from "react";
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  Bar,
-  XAxis,
-  YAxis,
-  ZAxis,
-  CartesianGrid,
-  Scatter,
-} from "recharts";
+import type { ApexOptions } from "apexcharts";
+import ApexCharts from "react-apexcharts";
 
 type BoxPlot = {
+  category: string;
   min: number;
-  lowerQuartile: number;
+  q1: number;
   median: number;
-  upperQuartile: number;
+  q3: number;
   max: number;
   average?: number;
 };
 
-type BoxPlotData = {
-  min: number;
-  max:number;
-  bottomWhisker: number;
-  bottomBox: number;
-  topBox: number;
-  topWhisker: number;
-  average?: number;
-  size: number;
-};
+const BoxPlot = ({ boxplot }: { boxplot: BoxPlot[] }) => {
+  const series = [
+    {
+      type: "boxPlot",
+      data: boxplot.map((v) => ({
+        x: v.category,
+        y: [v.min, v.q1, v.median, v.q3, v.max],
+      })),
+    },
+  ];
 
-const HorizonBar = ({ x, y, width, height }: any) => {
-  if (x == null || y == null || width == null || height == null) {
-    return null;
-  }
+  const options : ApexOptions = {
+    chart: {
+      type: "boxPlot",
+      height: 350,
+      toolbar: {
+        show: false,
+        tools: {
+          zoomin: false,
+          zoom: false, 
+          zoomout: false,
+        },
+      }
+    },
+    title: {
+      text: "",
+      align: "left",
+    },
+    plotOptions: {
+      boxPlot: {
+        colors: {
+          upper: "#8884d8",
+          lower: "#82ca9d",
+        },
+      },
+    },
+    xaxis: {
+      categories: boxplot.map((v) => v.category),
+    },
+  };
 
   return (
-    <line x1={x} y1={y} x2={x + width} y2={y} stroke={"#000"} strokeWidth={3} />
+    <div>
+      <ApexCharts options={options} series={series} type="boxPlot" height={300} />
+    </div>
   );
 };
 
-const DotBar = ({ x, y, width, height }: any) => {
-  if (x == null || y == null || width == null || height == null) {
-    return null;
-  }
-
-  return (
-    <line
-      x1={x + width / 2}
-      y1={y + height}
-      x2={x + width / 2}
-      y2={y}
-      stroke={"#000"}
-      strokeWidth={2}
-      strokeDasharray={"4"}
-    />
-  );
-};
-
-const useBoxPlot = (boxPlots: BoxPlot[]): BoxPlotData[] => {
-  const data = useMemo(
-    () =>
-      boxPlots.map((v) => {
-        return {
-          min: v.min,
-          bottomWhisker: v.lowerQuartile - v.min,
-          max: v.max,
-          bottomBox: v.median - v.lowerQuartile,
-          topBox: v.upperQuartile - v.median,
-          topWhisker: v.max - v.upperQuartile,
-          average: v.average,
-          size: 100,
-        };
-      }),
-    [boxPlots]
-  );
-
-  return data;
-};
-
-export default function BoxPlotChart({ boxplot }: { boxplot: BoxPlot[] }) {
-  const data = useBoxPlot(boxplot);
-  const xMin = Math.min(...data.map(d => d.min));
-  const xMax = Math.max(...data.map(d => d.max));  
-  return (
-    <ResponsiveContainer height={300} width="100%">
-      <ComposedChart data={data} margin={{ top: 10, right: 20, bottom: 30, left: 20 }}>
-        <CartesianGrid strokeDasharray="5 5" />
-        <Bar stackId={"a"} dataKey={"min"} fill={"none"} />
-        <Bar stackId={"a"} dataKey={"bar"} shape={<HorizonBar />} />
-        <Bar stackId={"a"} dataKey={"bottomWhisker"} shape={<DotBar />} />
-        <Bar stackId={"a"} dataKey={"bottomBox"} fill={"#8884d8"} />
-        <Bar stackId={"a"} dataKey={"bar"} shape={<HorizonBar />} />
-        <Bar stackId={"a"} dataKey={"topBox"} fill={"#8884d8"} />
-        <Bar stackId={"a"} dataKey={"topWhisker"} shape={<DotBar />} />
-        <Bar stackId={"a"} dataKey={"bar"} shape={<HorizonBar />} />
-        <ZAxis type="number" dataKey="size" range={[0, 250]} />
-        <Scatter dataKey="average" fill={"red"} stroke={"#FFF"} />
-        <XAxis domain={[xMin, xMax + 10]} />
-        <YAxis domain={['auto', 'auto']} />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-}
+export default BoxPlot;

@@ -19,7 +19,6 @@ const Navbar: React.FC = () => {
       <Menu
         theme="dark"
         mode="horizontal"
-        selectable={false}
         onClick={(e) => {
           if (e.key === "rawData") navigate("/raw-data");
           else if (e.key === "buildChart") navigate("/build-chart");

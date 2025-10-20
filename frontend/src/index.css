@@ -8,3 +8,14 @@
   border-color: #1a9d62 !important;
   color: #1a9d62 !important;
 }
+
+.ant-menu-item-selected {
+  color: white !important;
+  background-color: #1bc47d !important;
+}
+
+.ant-btn-primary:not(:disabled) {
+  background-color: #1bc47d !important;
+  border-color: #1bc47d !important;
+  color: white !important;
+}

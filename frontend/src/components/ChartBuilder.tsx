@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Card, Form, Select, Button, Radio, Alert } from "antd";
+import { Card, Form, Select, Button, Radio, Alert, message } from "antd";
 import { getChartData } from "../api/apiService";
 import { aggregateData, prepareBoxplotData, transformDataToMultiline } from "../utils/chartUtils";
 import { useSearchParams } from "react-router-dom";
+import { getRawData } from "../api/apiService";
 
 const { Option } = Select;
 
@@ -10,21 +11,40 @@ export type ChartType = "bar" | "line" | "pie" | "multiline" | "boxplot";
 export type AggType = "count" | "sum" | "average";
 
 type Props = {
-  columns: string[];
   onResult: (chartData: any[], meta: { params: Record<string, string> }) => void;
 };
 
-const ChartBuilder: React.FC<Props> = ({ columns, onResult}) => {
+const ChartBuilder: React.FC<Props> = ({ onResult}) => {
+
+  useEffect(() => {
+  const fetchColumns = async () =>{
+    try { 
+    const rawData = await getRawData();
+    const columns = Object.keys(rawData[0] || {});
+    setColumns(columns);
+    } catch (err) {
+      console.error(err);
+      message.error("An error occurred when trying to fetch data.", 3)
+    }
+  }; 
+  fetchColumns();
+}, []);
+
   const [searchParams] = useSearchParams();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<any[]>([]);
-
+  const [columns, setColumns] = useState<any[]>([])
+  
   useEffect(() => {
+    let toGenerate = false;
     for (const [key, value] of searchParams) {
       form.setFieldValue(key, value)
-      handleGenerate()
+      toGenerate = true;
+    }
+    if (toGenerate) {
+      handleGenerate();
     }
   }, [searchParams])
 
@@ -89,7 +109,6 @@ const ChartBuilder: React.FC<Props> = ({ columns, onResult}) => {
       if (values.z) params.z = values.z;
     }
     setLoading(true);
-
     try {
       const data = await getChartData(params);
       if (chartType === "boxplot" && values.x && values.y) {
